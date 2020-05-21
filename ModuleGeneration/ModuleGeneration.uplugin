@@ -1,0 +1,24 @@
+{
+	"FileVersion": 3,
+	"Version": 1,
+	"VersionName": "1.0",
+	"FriendlyName": "ModuleGeneration",
+	"Description": "Generate new code modules. Use File > New C++ Module",
+	"Category": "Other",
+	"CreatedBy": "Dominik Peacock",
+	"CreatedByURL": "",
+	"DocsURL": "",
+	"MarketplaceURL": "",
+	"SupportURL": "",
+	"CanContainContent": true,
+	"IsBetaVersion": false,
+	"IsExperimentalVersion": false,
+	"Installed": false,
+	"Modules": [
+		{
+			"Name": "ModuleGeneration",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	]
+}
