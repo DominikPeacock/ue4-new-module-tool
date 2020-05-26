@@ -1,5 +1,6 @@
 // {Copyright}
 
+using System.IO;
 using UnrealBuildTool;
 
 public class {ModuleName} : ModuleRules
@@ -11,7 +12,7 @@ public class {ModuleName} : ModuleRules
 		PublicIncludePaths.AddRange(
 			new string[] 
 			{
-				
+                Path.Combine(ModuleDirectory, "Public")
 			}
 			);
 				

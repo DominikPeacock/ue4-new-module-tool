@@ -1,6 +1,6 @@
 // {Copyright}
 
-#include "ModuleGeneration.h"
+#include "{ModuleName}.h"
 #include "Logging.h"
 
 #include "Modules/ModuleManager.h"
