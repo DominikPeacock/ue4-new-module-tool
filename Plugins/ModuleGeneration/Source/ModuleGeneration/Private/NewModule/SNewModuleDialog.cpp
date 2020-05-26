@@ -445,7 +445,7 @@ void SNewModuleDialog::OnClickFinish()
 	CloseContainingWindow();
 	if(!bHadErrors)
 	{
-		const FText DoneMessageUnformatted = LOCTEXT("NewModule_Done_Message", "Sucessfully created new module.\n\You need to update you project's .Target.cs files by adding:\nExtraModuleNames.Add(\"{0}\")");
+		const FText DoneMessageUnformatted = LOCTEXT("NewModule_Done_Message", "Sucessfully created new module.\n\nYou need to update you project's .Target.cs files by adding:\nExtraModuleNames.Add(\"{0}\")");
 		const FText DoneMessage = FText::Format(FTextFormat(DoneMessageUnformatted), FText::FromString(NewModuleName));
 		const FText DoneTitle = LOCTEXT("NewModule_Done_Title", "New C++ Module");
 		FMessageDialog::Open(EAppMsgType::Ok, DoneMessage, &DoneTitle);
