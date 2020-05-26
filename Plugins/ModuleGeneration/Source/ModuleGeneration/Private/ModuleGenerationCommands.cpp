@@ -1,4 +1,5 @@
-﻿
+﻿// Copyright (c) Dominik Peacock 2020
+
 #include "ModuleGenerationCommands.h"
 
 #define LOCTEXT_NAMESPACE "FModuleGenerationModule"

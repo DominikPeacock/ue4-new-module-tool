@@ -1,4 +1,4 @@
-// Copyright 1998-2019 Epic Games, Inc. All Rights Reserved.
+// Copyright (c) Dominik Peacock 2020
 
 #include "ModuleGeneration.h"
 

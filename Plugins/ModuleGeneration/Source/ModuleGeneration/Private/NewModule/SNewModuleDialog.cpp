@@ -1,3 +1,4 @@
+// Copyright (c) Dominik Peacock 2020
 
 #include "NewModule/SNewModuleDialog.h"
 #include "Logging.h"
