@@ -79,6 +79,8 @@ namespace
 
 	bool AddNewModuleToUProjectJsonFile(const FModuleDescriptor& NewModule, const FErrorHandler& ErrorHandler);
 
+	bool AddNewModuleToUPluginJsonFile(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FErrorHandler& ErrorHandler);
+
 	bool GenerateVisualStudioSolution(const FErrorHandler& ErrorHandler);
 }
 
@@ -95,11 +97,24 @@ void NewModuleModel::CreateNewModule(const FString& OutputDirectory, const FModu
 		return;
 	}
 
-	ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_WrittingProjectFiles", "Writting project files..."));
-	if(!AddNewModuleToUProjectJsonFile(NewModule, ErrorHandler))
+	if (OutputDirectory.Contains("/Plugins/"))
 	{
-		return;
+		ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_WrittingPluginFiles", "Writting plugin files..."));
+		if (!AddNewModuleToUPluginJsonFile(OutputDirectory, NewModule, ErrorHandler))
+		{
+			return;
+		}
 	}
+	else
+	{
+		ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_WrittingProjectFiles", "Writting project files..."));
+		if (!AddNewModuleToUProjectJsonFile(NewModule, ErrorHandler))
+		{
+			return;
+		}
+	}
+
+
 
 	ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_GeneratingVisualStudioSolutionFiles", "Generating visual studio solution..."));
 	GenerateVisualStudioSolution(ErrorHandler);
@@ -286,7 +301,104 @@ namespace
 		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
 		FJsonSerializer::Serialize(ProjectFileAsJson.ToSharedRef(), Writer);
 		FFileHelper::SaveStringToFile(OutputString, *PathToProjectFile);
-		
+
+		return true;
+	}
+
+	bool AddNewModuleToUPluginJsonFile(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FErrorHandler& ErrorHandler)
+	{
+		IFileManager& FileManager = IFileManager::Get();
+
+
+		FString Separator = "/Plugins/";
+		FString LeftString, RightString = "";
+		OutputDirectory.Split(Separator, &LeftString, &RightString, ESearchCase::IgnoreCase, ESearchDir::FromEnd);
+		FString PluginName, RightPluginName = "";
+		FString NewSeparator = "/";
+		RightString.Split(NewSeparator, &PluginName, &RightPluginName);
+
+		UE_LOG(ModuleGeneration, Warning, TEXT("Plugin name: '%s'"), *PluginName);
+
+		const FString ProjectDirectory = UKismetSystemLibrary::GetProjectDirectory();
+		const FString ProjectSearchRegex = FPaths::Combine(ProjectDirectory, FString("Plugins/" + PluginName + "/*.uplugin"));
+		UE_LOG(ModuleGeneration, Warning, TEXT("ProjectSearchRegex: '%s'"), *ProjectSearchRegex);
+		TArray<FString> UProjectFileNames;
+		FileManager.FindFiles(UProjectFileNames, *ProjectSearchRegex, true, false);
+
+		if (UProjectFileNames.Num() == 0)
+		{
+			ErrorHandler.HandleError(FString::Printf(TEXT("Failed to locate .uplugin file for current project. Searched path: '%s'"), *ProjectSearchRegex));
+			return false;
+		}
+		if (UProjectFileNames.Num() > 1)
+		{
+			UE_LOG(ModuleGeneration, Warning, TEXT("Found multiple .uplugin files. Picking '%s'..."), *UProjectFileNames[0]);
+		}
+
+		const FString PathSufix = "Plugins/" + PluginName + "/" + UProjectFileNames[0];
+		const FString PathToProjectFile = FPaths::Combine(ProjectDirectory, PathSufix);
+		FString FileContents;
+		TSharedPtr<FArchive> FileReadStream(FileManager.CreateFileReader(*PathToProjectFile));
+		if (FileReadStream == nullptr)
+		{
+			ErrorHandler.HandleError(FString::Printf(TEXT("Failed to create file stream to .uplugin file '%s'"), *PathToProjectFile));
+			return false;
+		}
+		const bool bCouldReadFile = FFileHelper::LoadFileToString(FileContents, *FileReadStream.Get());
+		if (!bCouldReadFile)
+		{
+			ErrorHandler.HandleError(FString::Printf(TEXT("Failed to read .uplugin file '%s'"), *PathToProjectFile));
+			return false;
+		}
+
+		TSharedPtr<FJsonObject> ProjectFileAsJson;
+		TSharedRef<TJsonReader<>> JsonReader = TJsonReaderFactory<>::Create(*FileContents);
+		if (!FJsonSerializer::Deserialize(JsonReader, ProjectFileAsJson))
+		{
+			ErrorHandler.HandleError(FString::Printf(TEXT("Failed to parse JSON from .uplugin file '%s'"), *PathToProjectFile));
+			return false;
+		}
+
+		TArray<TSharedPtr<FJsonValue>> Modules = ProjectFileAsJson->GetArrayField("Modules");
+		const bool bModuleAlreadyInList = [&Modules, &NewModule]()
+		{
+			for (auto e : Modules)
+			{
+				const TSharedPtr<FJsonObject>* PtrToJsonObject;
+				e->TryGetObject(PtrToJsonObject);
+				if (PtrToJsonObject == nullptr)
+				{
+					continue;
+				}
+
+				TSharedPtr<FJsonObject> AsJsonObject = *PtrToJsonObject;
+				FString ModuleName;
+				if (AsJsonObject->TryGetStringField("Name", ModuleName)
+					&& ModuleName.Equals(NewModule.Name.ToString()))
+				{
+					return true;
+				}
+			}
+			return false;
+		}();
+		if (bModuleAlreadyInList)
+		{
+			ErrorHandler.HandleError(FString::Printf(TEXT("The .uplugin file already contained an entry '%s'"), *NewModule.Name.ToString()));
+			return false;
+		}
+
+		TSharedPtr<FJsonObject> ModuleAsJson(new FJsonObject);
+		ModuleAsJson->SetStringField("Name", NewModule.Name.ToString());
+		ModuleAsJson->SetStringField("Type", EHostType::ToString(NewModule.Type));
+		ModuleAsJson->SetStringField("LoadingPhase", ELoadingPhase::ToString(NewModule.LoadingPhase));
+		Modules.Add(TSharedPtr<FJsonValueObject>(new FJsonValueObject(ModuleAsJson)));
+		ProjectFileAsJson->SetArrayField("Modules", Modules);
+
+		FString OutputString;
+		TSharedRef<TJsonWriter<>> Writer = TJsonWriterFactory<>::Create(&OutputString);
+		FJsonSerializer::Serialize(ProjectFileAsJson.ToSharedRef(), Writer);
+		FFileHelper::SaveStringToFile(OutputString, *PathToProjectFile);
+
 		return true;
 	}
 
