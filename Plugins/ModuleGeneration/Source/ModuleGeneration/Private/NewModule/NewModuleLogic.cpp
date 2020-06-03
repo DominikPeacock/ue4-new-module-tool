@@ -44,6 +44,25 @@ void NewModuleController::CreateAndShowNewModuleWindow()
 // Declare helper functions for NewModuleModel::CreateNewModule 
 namespace
 {
+	namespace EModuleCreationLocation
+	{
+		enum Type
+		{
+			/**
+			 * Module was created nowhere; an error occured.
+			 */
+			Nowhere,
+			/**
+			 * In .uproject
+			 */
+			Project,
+			/**
+			 * In .uplugin
+			 */
+			Plugin
+		};
+	}
+	
 	class FErrorHandler
 	{
 	public:
@@ -63,6 +82,8 @@ namespace
 
 		FOnCreateNewModuleError Callback_;
 	};
+
+	EModuleCreationLocation::Type CreateNewModuleInternal(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FOnCreateNewModuleError& ErrorCallback);
 	
 	bool CopyFiles(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FErrorHandler& ErrorHandler);
 	void EnqueueSubdirectories(
@@ -84,43 +105,67 @@ namespace
 
 void NewModuleModel::CreateNewModule(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FOnCreateNewModuleError& ErrorCallback)
 {
-	FErrorHandler ErrorHandler(ErrorCallback);
-	FScopedSlowTask ProgressBar(3, LOCTEXT("NewModule_ProgressBar_DefaultTitle", "Creating new module files..."));
-	ProgressBar.MakeDialog();
-	UE_LOG(ModuleGeneration, Log, TEXT("Creating new module '%s'..."), *NewModule.Name.ToString());
-
-	ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_CopyingFiles", "Copying files..."));
-	if(!CopyFiles(OutputDirectory, NewModule, ErrorHandler))
+	const EModuleCreationLocation::Type CreationLocation =
+		CreateNewModuleInternal(OutputDirectory, NewModule, ErrorCallback);
+	
+	if(CreationLocation == EModuleCreationLocation::Project)
 	{
-		return;
+		const FText DoneMessageUnformatted = LOCTEXT("NewModule_Done_ModuleMessage", "Sucessfully created new module.\n\nYou need to update your project's .Target.cs files by adding:\nExtraModuleNames.Add(\"{0}\")");
+		const FText DoneMessage = FText::Format(FTextFormat(DoneMessageUnformatted), FText::FromString(NewModule.Name.ToString()));
+		const FText DoneTitle = LOCTEXT("NewModule_Done_Title", "New C++ Module");
+		FMessageDialog::Open(EAppMsgType::Ok, DoneMessage, &DoneTitle);
 	}
-
-	if (OutputDirectory.Contains("/Plugins/"))
+	else if(CreationLocation == EModuleCreationLocation::Plugin)
 	{
-		ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_WrittingPluginFiles", "Writting plugin files..."));
-		if (!AddNewModuleToUPluginJsonFile(OutputDirectory, NewModule, ErrorHandler))
-		{
-			return;
-		}
+		const FText DoneMessageUnformatted = LOCTEXT("NewModule_Done_PluginMessage", "Sucessfully created new module.");
+		const FText DoneMessage = FText::Format(FTextFormat(DoneMessageUnformatted), FText::FromString(NewModule.Name.ToString()));
+		const FText DoneTitle = LOCTEXT("NewModule_Done_Title", "New C++ Module");
+		FMessageDialog::Open(EAppMsgType::Ok, DoneMessage, &DoneTitle);
 	}
-	else
-	{
-		ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_WrittingProjectFiles", "Writting project files..."));
-		if (!AddNewModuleToUProjectJsonFile(NewModule, ErrorHandler))
-		{
-			return;
-		}
-	}
-
-
-
-	ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_GeneratingVisualStudioSolutionFiles", "Generating visual studio solution..."));
-	GenerateVisualStudioSolution(ErrorHandler);
 }
 
 // Define helper functions for NewModuleModel::CreateNewModule 
 namespace
 {
+	EModuleCreationLocation::Type CreateNewModuleInternal(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FOnCreateNewModuleError& ErrorCallback)
+	{
+		FErrorHandler ErrorHandler(ErrorCallback);
+		FScopedSlowTask ProgressBar(3, LOCTEXT("NewModule_ProgressBar_DefaultTitle", "Creating new module files..."));
+		ProgressBar.MakeDialog();
+		UE_LOG(ModuleGeneration, Log, TEXT("Creating new module '%s'..."), *NewModule.Name.ToString());
+
+		ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_CopyingFiles", "Copying files..."));
+		if (!CopyFiles(OutputDirectory, NewModule, ErrorHandler))
+		{
+			return EModuleCreationLocation::Nowhere;
+		}
+
+		EModuleCreationLocation::Type result;
+		if (OutputDirectory.Contains("/Plugins/"))
+		{
+			result = EModuleCreationLocation::Plugin;
+			ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_WrittingPluginFiles", "Writting plugin files..."));
+			if (!AddNewModuleToUPluginJsonFile(OutputDirectory, NewModule, ErrorHandler))
+			{
+				return EModuleCreationLocation::Nowhere;
+			}
+		}
+		else
+		{
+			result = EModuleCreationLocation::Project;
+			ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_WrittingProjectFiles", "Writting project files..."));
+			if (!AddNewModuleToUProjectJsonFile(NewModule, ErrorHandler))
+			{
+				return EModuleCreationLocation::Nowhere;
+			}
+		}
+
+		ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_GeneratingVisualStudioSolutionFiles", "Generating visual studio solution..."));
+		GenerateVisualStudioSolution(ErrorHandler);
+
+		return result;
+	}
+	
 	bool CopyFiles(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FErrorHandler& ErrorHandler)
 	{
 		// Setup string replacements for files and folders
@@ -252,7 +297,8 @@ namespace
 		RightString.Split(NewSeparator, &PluginName, &RightPluginName);
 
 		const FString ProjectDirectory = UKismetSystemLibrary::GetProjectDirectory();
-		const FString ProjectSearchRegex = FPaths::Combine(ProjectDirectory, FString("Plugins/" + PluginName + "/*.uplugin"));
+		const FString PluginFolderDirectory = FPaths::Combine(ProjectDirectory, FString("Plugins"), PluginName);
+		const FString ProjectSearchRegex = FPaths::Combine(PluginFolderDirectory, FString("*.uplugin"));
 		TArray<FString> UPluginFileNames;
 		FileManager.FindFiles(UPluginFileNames, *ProjectSearchRegex, true, false);
 
@@ -266,7 +312,8 @@ namespace
 			UE_LOG(ModuleGeneration, Warning, TEXT("Found multiple .uplugin files. Picking '%s'..."), *UPluginFileNames[0]);
 		}
 
-		const FString PathToProjectFile = FPaths::Combine(ProjectDirectory, "Plugins", PluginName, UPluginFileNames[0]);
+		const FString PathToProjectFile = FPaths::Combine(PluginFolderDirectory, UPluginFileNames[0]);
+		UE_LOG(ModuleGeneration, Log, TEXT("Path to uplugin file is '%s'..."), *PathToProjectFile);
 		return AddNewModuleToFile(PathToProjectFile, NewModule, ErrorHandler);
 	}
 	bool AddNewModuleToFile(const FString& FullFilePath, const FModuleDescriptor& NewModule, const FErrorHandler& ErrorHandler)
@@ -343,7 +390,7 @@ namespace
 		FText FailReason, FailLog;
 		if (!FGameProjectGenerationModule::Get().UpdateCodeProject(FailReason, FailLog))
 		{
-			ErrorHandler.HandleError(FailReason.ToString());
+			ErrorHandler.HandleError(FString::Printf(TEXT("Failed to update visual studio solution. You need to regenerate the solution manually.\n\nError reason: '%s'"), *FailReason.ToString()));
 			return false;
 		}
 		return true;

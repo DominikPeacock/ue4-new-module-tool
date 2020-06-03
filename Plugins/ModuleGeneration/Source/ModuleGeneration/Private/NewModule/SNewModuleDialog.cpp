@@ -426,14 +426,11 @@ void SNewModuleDialog::OnClickCancel()
 
 void SNewModuleDialog::OnClickFinish()
 {
-	bool bHadErrors = false;
 	OnClickFinished.ExecuteIfBound(
 		OutputDirectory, 
 		FModuleDescriptor(FName(*NewModuleName), SelectedHostType, SelectedLoadingPhase),
-		FOnCreateNewModuleError::CreateLambda([&bHadErrors](auto Error)
+		FOnCreateNewModuleError::CreateLambda([](auto Error)
 		{
-			bHadErrors = true;
-		
 			const FText ErrorMessageUnformatted =
 				LOCTEXT("NewModule_Error_Message", "Failed to create new module.\n\n\nReason: {0}\n\nSome files may already have been created.");
 			const FText ErrorMessage = FText::Format(FTextFormat(ErrorMessageUnformatted), FText::FromString(Error));
@@ -444,13 +441,6 @@ void SNewModuleDialog::OnClickFinish()
 	));
 	
 	CloseContainingWindow();
-	if(!bHadErrors)
-	{
-		const FText DoneMessageUnformatted = LOCTEXT("NewModule_Done_Message", "Sucessfully created new module.\n\nYou need to update you project's .Target.cs files by adding:\nExtraModuleNames.Add(\"{0}\")");
-		const FText DoneMessage = FText::Format(FTextFormat(DoneMessageUnformatted), FText::FromString(NewModuleName));
-		const FText DoneTitle = LOCTEXT("NewModule_Done_Title", "New C++ Module");
-		FMessageDialog::Open(EAppMsgType::Ok, DoneMessage, &DoneTitle);
-	}
 }
 
 FText SNewModuleDialog::OnGetModuleName() const
