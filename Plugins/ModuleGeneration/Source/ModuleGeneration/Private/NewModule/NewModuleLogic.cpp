@@ -23,8 +23,6 @@
 
 void NewModuleController::CreateAndShowNewModuleWindow()
 {
-	UE_LOG(ModuleGeneration, Log, TEXT("NewModuleController::CreateAndShowNewModuleWindow"));
-	
 	const FVector2D WindowSize(940, 380); // 480
 	const FText WindowTitle = LOCTEXT("NewModule_Title", "New C++ Module");
 
