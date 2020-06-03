@@ -143,7 +143,7 @@ void SNewModuleDialog::Construct(const FArguments& InArgs)
 						[
 							SNew(STextBlock)
 							.Text(
-								LOCTEXT("NewModule_PageDescription", "This will add a new C++ module to your game project and add update the .uproject file accordingly.")
+								LOCTEXT("NewModule_PageDescription", "This will add a new C++ module to your game project and update the .uproject or .uplugin file, respectively.")
 								)
 						]
 					]
@@ -301,6 +301,7 @@ void SNewModuleDialog::Construct(const FArguments& InArgs)
 													SNew(SButton)
 													.VAlign(VAlign_Center)
 													.OnClicked(this, &SNewModuleDialog::HandleChooseFolderButtonClicked)
+													.ToolTipText(LOCTEXT("CreateModule_ChooseFolderTooltip", "You can choose either the 'Source' folder in your project's root directory or of any plugin in the 'Plugins' folder."))
 													.Text(LOCTEXT("BrowseButtonText", "Choose folder"))
 												]
 											]
