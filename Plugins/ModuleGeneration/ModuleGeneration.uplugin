@@ -1,7 +1,7 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.1",
+	"VersionName": "1.2",
 	"FriendlyName": "ModuleGeneration",
 	"Description": "Generate new code modules. Use File > New C++ Module",
 	"Category": "Other",
@@ -10,7 +10,7 @@
 	"DocsURL": "",
 	"MarketplaceURL": "https://www.unrealengine.com/marketplace/en-US/product/new-c-module-tool",
 	"SupportURL": "",
-	"EngineVersion": "4.25.0",
+	"EngineVersion": "4.26",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
