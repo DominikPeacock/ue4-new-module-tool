@@ -6,7 +6,7 @@ public class ModuleGeneration : ModuleRules
 {
 	public ModuleGeneration(ReadOnlyTargetRules Target) : base(Target)
 	{
-		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
+		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
         PrivateIncludePaths.AddRange(
             new string[]

@@ -13,7 +13,7 @@ public:
     FModuleGenerationCommands()
         : TCommands<FModuleGenerationCommands>(TEXT("ModuleGeneration"), NSLOCTEXT("Contexts", "ModuleGenerationCommands", "Module Generation Commands"), NAME_None, FEditorStyle::GetStyleSetName())
     {}
-    void RegisterCommands() override;
+    virtual void RegisterCommands() override;
     
 public:
 
