@@ -1,8 +1,7 @@
 // {Copyright}
 
 #include "{ModuleName}.h"
-
-DEFINE_LOG_CATEGORY({ModuleName});
+#include "Logging.h"
 
 #define LOCTEXT_NAMESPACE "F{ModuleName}"
 
