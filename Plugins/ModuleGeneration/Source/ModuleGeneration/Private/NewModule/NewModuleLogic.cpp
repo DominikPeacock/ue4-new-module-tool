@@ -132,7 +132,7 @@ namespace
 		FErrorHandler ErrorHandler(ErrorCallback);
 		FScopedSlowTask ProgressBar(3, LOCTEXT("NewModule_ProgressBar_DefaultTitle", "Creating new module files..."));
 		ProgressBar.MakeDialog();
-		UE_LOG(ModuleGeneration, Log, TEXT("Creating new module '%s'..."), *NewModule.Name.ToString());
+		UE_LOG(LogModuleGeneration, Log, TEXT("Creating new module '%s'..."), *NewModule.Name.ToString());
 
 		ProgressBar.EnterProgressFrame(1, LOCTEXT("NewModule_ProgressBar_CopyingFiles", "Copying files..."));
 		if (!CopyFiles(OutputDirectory, NewModule, ErrorHandler))
@@ -279,7 +279,7 @@ namespace
 		}
 		if(UProjectFileNames.Num() > 1)
 		{
-			UE_LOG(ModuleGeneration, Warning, TEXT("Found multiple .uproject files. Picking '%s'..."), *UProjectFileNames[0]);
+			UE_LOG(LogModuleGeneration, Warning, TEXT("Found multiple .uproject files. Picking '%s'..."), *UProjectFileNames[0]);
 		}
 
 		const FString PathToProjectFile = FPaths::Combine(ProjectDirectory, UProjectFileNames[0]);
@@ -309,11 +309,11 @@ namespace
 		}
 		if (UPluginFileNames.Num() > 1)
 		{
-			UE_LOG(ModuleGeneration, Warning, TEXT("Found multiple .uplugin files. Picking '%s'..."), *UPluginFileNames[0]);
+			UE_LOG(LogModuleGeneration, Warning, TEXT("Found multiple .uplugin files. Picking '%s'..."), *UPluginFileNames[0]);
 		}
 
 		const FString PathToProjectFile = FPaths::Combine(PluginFolderDirectory, UPluginFileNames[0]);
-		UE_LOG(ModuleGeneration, Log, TEXT("Path to uplugin file is '%s'..."), *PathToProjectFile);
+		UE_LOG(LogModuleGeneration, Log, TEXT("Path to uplugin file is '%s'..."), *PathToProjectFile);
 		return AddNewModuleToFile(PathToProjectFile, NewModule, ErrorHandler);
 	}
 	bool AddNewModuleToFile(const FString& FullFilePath, const FModuleDescriptor& NewModule, const FErrorHandler& ErrorHandler)

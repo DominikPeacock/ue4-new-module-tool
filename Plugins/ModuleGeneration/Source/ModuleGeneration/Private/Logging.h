@@ -4,4 +4,4 @@
 
 #include "CoreMinimal.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(ModuleGeneration, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogModuleGeneration, Log, All);

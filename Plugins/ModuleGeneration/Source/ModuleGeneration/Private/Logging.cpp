@@ -2,4 +2,4 @@
 
 #include "Logging.h"
 
-DEFINE_LOG_CATEGORY(ModuleGeneration);
+DEFINE_LOG_CATEGORY(LogModuleGeneration);
