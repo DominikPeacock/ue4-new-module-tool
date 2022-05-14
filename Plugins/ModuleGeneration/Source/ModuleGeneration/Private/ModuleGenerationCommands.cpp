@@ -1,4 +1,4 @@
-﻿// Copyright (c) Dominik Peacock 2020
+﻿// Copyright Dominik Peacock. All rights reserved.
 
 #include "ModuleGenerationCommands.h"
 
