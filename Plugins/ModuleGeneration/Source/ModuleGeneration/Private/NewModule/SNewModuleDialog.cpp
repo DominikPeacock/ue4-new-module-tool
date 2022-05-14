@@ -304,7 +304,7 @@ TSharedRef<SWidget> SNewModuleDialog::CreateFooter()
 {
 	return SNew(SBorder)
 		.Visibility( this, &SNewModuleDialog::GetErrorLabelVisibility )
-		.BorderImage( FEditorStyle::GetBrush("NewClassDialog.ErrorLabelBorder") )
+		.BorderImage(FAppStyle::Get().GetBrush("RoundedError"))
 		.Padding(FMargin(0, 5))
 		.Content()
 		[
@@ -316,7 +316,7 @@ TSharedRef<SWidget> SNewModuleDialog::CreateFooter()
 			.AutoWidth()
 			[
 				SNew(SImage)
-				.Image(FEditorStyle::GetBrush("MessageLog.Warning"))
+				.Image(FAppStyle::Get().GetBrush("Icons.ErrorWithColor"))
 			]
 
 			+SHorizontalBox::Slot()
@@ -324,7 +324,6 @@ TSharedRef<SWidget> SNewModuleDialog::CreateFooter()
 			[
 				SNew(STextBlock)
 				.Text( this, &SNewModuleDialog::GetErrorLabelText )
-				.TextStyle( FEditorStyle::Get(), "NewClassDialog.ErrorLabelFont" )
 			]
 		];
 }
