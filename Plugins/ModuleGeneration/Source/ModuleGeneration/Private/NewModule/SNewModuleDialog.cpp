@@ -67,7 +67,6 @@ void SNewModuleDialog::Construct(const FArguments& InArgs)
 				.CancelButtonStyle(FEditorStyle::Get(), "FlatButton.Default")
 				.FinishButtonStyle(FEditorStyle::Get(), "FlatButton.Success")
 				.ButtonTextStyle(FEditorStyle::Get(), "LargeText")
-				.ForegroundColor(FEditorStyle::Get().GetSlateColor("WhiteBrush"))
 
 				.CanFinish(this, &SNewModuleDialog::CanFinishButtonBeClicked)
 				.FinishButtonText(LOCTEXT("NewModule_FinishButtonText", "Create Module"))
