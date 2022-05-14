@@ -1,4 +1,4 @@
-// Copyright (c) Dominik Peacock 2020
+// Copyright Dominik Peacock. All rights reserved.
 
 #pragma once
 
@@ -14,22 +14,48 @@ class SWizard;
 class SNewModuleDialog : public SCompoundWidget
 {
 public:
+
+	DECLARE_DELEGATE_RetVal_TwoParams(UE::ModuleGeneration::FOperationResult, FOnRequestNewModule, const FString& /*OutputDirectory*/, const FModuleDescriptor& /*ClassPath*/)
 	
 	SLATE_BEGIN_ARGS(SNewModuleDialog)
 	{}
-
-	/** A reference to the parent window */
-	SLATE_ARGUMENT(TSharedPtr<SWindow>, ParentWindow)
-
-	SLATE_EVENT(FOnRequestNewModule, OnClickFinished)
-	
+		/** A reference to the parent window */
+		SLATE_ARGUMENT(TSharedPtr<SWindow>, ParentWindow)
+		SLATE_EVENT(FOnRequestNewModule, OnClickFinished)
 	SLATE_END_ARGS()
 
 	void Construct(const FArguments& InArgs);
 
 private:
 
+	// Widget references
+	TSharedPtr<SWizard> MainWizard;
+	TSharedPtr<SEditableTextBox> ModuleNameEditBox;
+	TSharedPtr<SComboBox<TSharedPtr<EHostType::Type>>> SelectableHostTypesComboBox;
+	TSharedPtr<SComboBox<TSharedPtr<ELoadingPhase::Type>>> SelectableLoadingPhasesComboBox;
+
+	// Data sources
+	TArray<TSharedPtr<FModuleContextInfo>> AvailableModules;
+	TArray<TSharedPtr<EHostType::Type>> ModuleTypeOptions;
+	TArray<TSharedPtr<ELoadingPhase::Type>> LoadingPhaseOptions;
+	
+	// Input data
+	FString OutputDirectory;
+	FString NewModuleName = TEXT("NewModule");
+	EHostType::Type SelectedHostType = EHostType::Runtime;
+	ELoadingPhase::Type SelectedLoadingPhase = ELoadingPhase::Default;
+
+	// Called by OnClickFinish when finish button is clicked
+	FOnRequestNewModule OnClickFinished;
+
 	void PopulateAvailableModules();
+	void PopulateModuleTypes();
+	void PopulateLoadingPhases();
+
+	TSharedRef<SWidget> CreateMainPage();
+	TSharedRef<SWidget> CreateModuleDetailsPanel();
+	TSharedRef<SWidget> CreateFooter();
+
 	FString FindSuitableModulePath() const;
 	
 	bool CanFinishButtonBeClicked() const;
@@ -64,27 +90,4 @@ private:
 	
 	void UpdateInput();
 	void CloseContainingWindow();
-
-private:
-
-	// Widget references
-	TSharedPtr<SWizard> MainWizard;
-	TSharedPtr<SEditableTextBox> ModuleNameEditBox;
-	TSharedPtr<SComboBox<TSharedPtr<EHostType::Type>>> SelectableHostTypesComboBox;
-	TSharedPtr<SComboBox<TSharedPtr<ELoadingPhase::Type>>> SelectableLoadingPhasesComboBox;
-
-	// Other data
-	TArray<TSharedPtr<FModuleContextInfo>> AvailableModules;
-	
-	// Input data
-	FString OutputDirectory;
-	FString NewModuleName;
-	EHostType::Type SelectedHostType;
-	ELoadingPhase::Type SelectedLoadingPhase;
-
-	// Style constants
-	const float EditableTextHeight = 26.f;
-
-	// Called by OnClickFinish when finish button is clicked
-	FOnRequestNewModule OnClickFinished;
 };

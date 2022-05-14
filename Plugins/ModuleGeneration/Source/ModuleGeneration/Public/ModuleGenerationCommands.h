@@ -1,4 +1,4 @@
-﻿// Copyright (c) Dominik Peacock 2020
+﻿// Copyright Dominik Peacock. All rights reserved.
 
 #pragma once
 
@@ -14,10 +14,7 @@ public:
         : TCommands<FModuleGenerationCommands>(TEXT("ModuleGeneration"), NSLOCTEXT("Contexts", "ModuleGenerationCommands", "Module Generation Commands"), NAME_None, FEditorStyle::GetStyleSetName())
     {}
     void RegisterCommands() override;
-    
-public:
 
     TSharedPtr<FUICommandInfo> NewModule;
-    
 };
 

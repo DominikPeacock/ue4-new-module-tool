@@ -1,14 +1,12 @@
-// Copyright (c) Dominik Peacock 2020
+// Copyright Dominik Peacock. All rights reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
+#include "ModuleDescriptor.h"
+#include "OperationResult.h"
 
-struct FModuleDescriptor;
-class FString;
-
-DECLARE_DELEGATE_OneParam(FOnCreateNewModuleError, const FString& /* ErrorMessage */)
-DECLARE_DELEGATE_ThreeParams(FOnRequestNewModule, const FString& /*OutputDirectory*/, const FModuleDescriptor& /*ClassPath*/, const FOnCreateNewModuleError& /* ErrorCallback */ );
+;
 
 
 

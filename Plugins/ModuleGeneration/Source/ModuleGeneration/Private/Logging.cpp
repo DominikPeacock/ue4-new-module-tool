@@ -1,5 +1,5 @@
-// Copyright (c) Dominik Peacock 2020
+// Copyright Dominik Peacock. All rights reserved.
 
 #include "Logging.h"
 
-DEFINE_LOG_CATEGORY(ModuleGeneration);
+DEFINE_LOG_CATEGORY(LogModuleGeneration);

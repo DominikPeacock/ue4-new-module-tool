@@ -1,7 +1,7 @@
-// Copyright (c) Dominik Peacock 2020
+// Copyright Dominik Peacock. All rights reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 
-DECLARE_LOG_CATEGORY_EXTERN(ModuleGeneration, Log, All);
+DECLARE_LOG_CATEGORY_EXTERN(LogModuleGeneration, Log, All);

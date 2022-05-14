@@ -1,4 +1,4 @@
-// Copyright (c) Dominik Peacock 2020
+// Copyright Dominik Peacock. All rights reserved.
 
 using UnrealBuildTool;
 
@@ -20,7 +20,8 @@ public class ModuleGeneration : ModuleRules
 			{
                 "Core",
 				"EditorStyle",
-                "Slate"
+                "Slate", 
+                "Projects"
 			}
 			);
 		PrivateDependencyModuleNames.AddRange(
@@ -35,6 +36,7 @@ public class ModuleGeneration : ModuleRules
 				"GameProjectGeneration",
                 "InputCore",
 				"Json",
+				"MainFrame",
                 "Projects",
 				"UnrealEd",
                 "Slate",
