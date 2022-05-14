@@ -14,41 +14,14 @@
 
 void SNewModuleDialog::Construct(const FArguments& InArgs)
 {
-	static TArray<TSharedPtr<EHostType::Type>> ALL_MODULE_TYPES = []()
-	{
-		TArray<TSharedPtr<EHostType::Type>> result;
-		for(size_t i = EHostType::Runtime; i < EHostType::Max; ++i)
-		{
-			TSharedPtr<EHostType::Type> value = MakeShareable (new EHostType::Type);
-			*value = static_cast<EHostType::Type>(i);
-			result.Add(value);
-		}
-		return result;
-	}();
-	static TArray<TSharedPtr<ELoadingPhase::Type>> ALL_LOADING_PHASES = []()
-	{
-		TArray<TSharedPtr<ELoadingPhase::Type>> result;
-		for (size_t i = ELoadingPhase::EarliestPossible; i < ELoadingPhase::Max; ++i)
-		{
-			TSharedPtr<ELoadingPhase::Type> value = MakeShareable(new ELoadingPhase::Type);
-			*value = static_cast<ELoadingPhase::Type>(i);
-			result.Add(value);
-		}
-		return result;
-	}();
-	static TSharedPtr<EHostType::Type> INITIALLY_SELECTED_HOST_TYPE =
-		*ALL_MODULE_TYPES.FindByPredicate([](auto e) { return *e.Get() == EHostType::Runtime; });
-	static TSharedPtr<ELoadingPhase::Type> INITIALL_SELECTED_LOADING_PHASE =
-		*ALL_LOADING_PHASES.FindByPredicate([](auto e) { return *e.Get() == ELoadingPhase::Default; });
+	check(InArgs._OnClickFinished.IsBound());
 	
 	PopulateAvailableModules();
-
+	PopulateModuleTypes();
+	PopulateLoadingPhases();
+	
 	OnClickFinished = InArgs._OnClickFinished;
-
 	OutputDirectory = FindSuitableModulePath();
-	NewModuleName = "NewModule";
-	SelectedHostType = EHostType::Runtime;
-	SelectedLoadingPhase = ELoadingPhase::Default;
 	
 	ChildSlot
 	[
@@ -63,11 +36,6 @@ void SNewModuleDialog::Construct(const FArguments& InArgs)
 				SAssignNew(MainWizard, SWizard)
 				.ShowPageList(false)
 
-				.ButtonStyle(FEditorStyle::Get(), "FlatButton.Default")
-				.CancelButtonStyle(FEditorStyle::Get(), "FlatButton.Default")
-				.FinishButtonStyle(FEditorStyle::Get(), "FlatButton.Success")
-				.ButtonTextStyle(FEditorStyle::Get(), "LargeText")
-
 				.CanFinish(this, &SNewModuleDialog::CanFinishButtonBeClicked)
 				.FinishButtonText(LOCTEXT("NewModule_FinishButtonText", "Create Module"))
 				.FinishButtonToolTip (
@@ -80,236 +48,12 @@ void SNewModuleDialog::Construct(const FArguments& InArgs)
 				// Error message at bottom
 				.PageFooter()
 				[
-					SNew(SBorder)
-					.Visibility( this, &SNewModuleDialog::GetErrorLabelVisibility )
-					.BorderImage( FEditorStyle::GetBrush("NewClassDialog.ErrorLabelBorder") )
-					.Padding(FMargin(0, 5))
-					.Content()
-					[
-						SNew(SHorizontalBox)
-
-						+SHorizontalBox::Slot()
-						.VAlign(VAlign_Center)
-						.Padding(2.f)
-						.AutoWidth()
-						[
-							SNew(SImage)
-							.Image(FEditorStyle::GetBrush("MessageLog.Warning"))
-						]
-
-						+SHorizontalBox::Slot()
-						.VAlign(VAlign_Center)
-						[
-							SNew(STextBlock)
-							.Text( this, &SNewModuleDialog::GetErrorLabelText )
-							.TextStyle( FEditorStyle::Get(), "NewClassDialog.ErrorLabelFont" )
-						]
-					]
+					CreateFooter()
 				]
 
 				+SWizard::Page()
 				[
-					SNew(SVerticalBox)
-
-					// Title
-					+SVerticalBox::Slot()
-					.AutoHeight()
-					.Padding(0)
-					[
-						SNew(STextBlock)
-						.TextStyle( FEditorStyle::Get(), "NewClassDialog.PageTitle" )
-						.Text( LOCTEXT( "NewModule_Title", "New C++ Module" ) )
-					]
-
-					// Title spacer
-					+SVerticalBox::Slot()
-					.AutoHeight()
-					.Padding(0, 2, 0, 8)
-					[
-						SNew(SSeparator)
-					]
-
-					// Page description and view options
-					+SVerticalBox::Slot()
-					.AutoHeight()
-					.Padding(0, 10)
-					[
-						SNew(SHorizontalBox)
-
-						+SHorizontalBox::Slot()
-						.FillWidth(1.f)
-						.VAlign(VAlign_Center)
-						[
-							SNew(STextBlock)
-							.Text(
-								LOCTEXT("NewModule_PageDescription", "This will add a new C++ module to your game project and update the .uproject or .uplugin file, respectively.")
-								)
-						]
-					]
-
-					// First page: name module, module type, and loading phase
-					+SVerticalBox::Slot()
-					.Padding(2, 2)
-					.AutoHeight()
-					.HAlign(EHorizontalAlignment::HAlign_Fill)//
-					[
-						SNew(SHorizontalBox)
-						+SHorizontalBox::Slot()
-						.HAlign(EHorizontalAlignment::HAlign_Fill)//
-						.FillWidth(1.f)//
-						[
-							SNew(SVerticalBox)
-
-							+SVerticalBox::Slot()
-							.AutoHeight()
-							.VAlign(VAlign_Center)
-							[
-								// Gray details panel
-								SNew(SBorder)
-								.BorderImage(FEditorStyle::GetBrush("DetailsView.CategoryTop"))
-								.BorderBackgroundColor(FLinearColor(0.6f, 0.6f, 0.6f, 1.0f ))
-								.Padding(FMargin(6.0f, 4.0f, 7.0f, 4.0f))
-								[
-									SNew(SVerticalBox)
-
-									+SVerticalBox::Slot()
-									.AutoHeight()
-									.Padding(0)
-									[
-										SNew(SGridPanel)
-										.FillColumn(1, 1.0f)
-
-										// Name label
-										+SGridPanel::Slot(0, 0)
-										.VAlign(VAlign_Center)
-										.Padding(0, 0, 12, 0)
-										[
-											SNew(STextBlock)
-											.TextStyle( FEditorStyle::Get(), "NewClassDialog.SelectedParentClassLabel" )
-											.Text( LOCTEXT( "CreateModule_NameLabel", "Name" ) )
-										]
-
-										// Name edit box
-										+SGridPanel::Slot(1, 0)
-										.Padding(0.0f, 3.0f)
-										.VAlign(VAlign_Center)
-										[
-											SNew(SBox)
-											.HeightOverride(EditableTextHeight)
-											[
-												SAssignNew(ModuleNameEditBox, SEditableTextBox)
-												.Text(this, &SNewModuleDialog::OnGetModuleName)
-												.OnTextChanged(this, &SNewModuleDialog::OnModuleNameChanged)
-												.OnTextCommitted(this, &SNewModuleDialog::OnModuleNameCommitted)
-											]
-										]
-										// Host type and loading phase
-										+SGridPanel::Slot(2, 0)
-										.Padding(0.0f, 3.0f)
-										.VAlign(VAlign_Center)
-										[
-											SNew(SBox)
-											.HeightOverride(EditableTextHeight)
-											[
-												SNew(SHorizontalBox)
-												// Host type
-												+ SHorizontalBox::Slot()
-												.AutoWidth()
-												.Padding(6.0f, 0.0f, 0.0f, 0.0f)
-												[
-													SAssignNew(SelectableHostTypesComboBox, SComboBox<TSharedPtr<EHostType::Type>>)
-													.Visibility(EVisibility::Visible)
-													.ToolTipText(LOCTEXT("CreateModule_ModuleHostTypeTip", "Choose your module's loading context"))
-													.OptionsSource(&ALL_MODULE_TYPES)
-													.InitiallySelectedItem(INITIALLY_SELECTED_HOST_TYPE)
-													.OnSelectionChanged(this, &SNewModuleDialog::OnSelectedHostTypeChanged)
-													.OnGenerateWidget(this, &SNewModuleDialog::MakeWidgetForSelectedHostType)
-													[
-														SNew(STextBlock)
-														.Text(this, &SNewModuleDialog::GetSelectedHostTypeText)
-													]
-												]
-
-												// Loading phase
-												+ SHorizontalBox::Slot()
-													.AutoWidth()
-													.Padding(6.0f, 0.0f, 0.0f, 0.0f)
-													[
-														SAssignNew(SelectableLoadingPhasesComboBox, SComboBox<TSharedPtr<ELoadingPhase::Type>>)
-														.Visibility(EVisibility::Visible)
-													.ToolTipText(LOCTEXT("CreateModule_ModuleLoadingPhaseTip", "Choose your module's loading phase"))
-													.OptionsSource(&ALL_LOADING_PHASES)
-													.InitiallySelectedItem(INITIALL_SELECTED_LOADING_PHASE)
-													.OnSelectionChanged(this, &SNewModuleDialog::OnSelectedLoadingPhaseChanged)
-													.OnGenerateWidget(this, &SNewModuleDialog::MakeWidgetForSelectedLoadingPhase)
-													[
-														SNew(STextBlock)
-														.Text(this, &SNewModuleDialog::GetSelectedLoadingPhaseText)
-													]
-												]
-											]
-										]
-
-										// Path label
-										+SGridPanel::Slot(0, 1)
-										.VAlign(VAlign_Center)
-										.Padding(0, 0, 12, 0)
-										[
-											SNew(STextBlock)
-											.TextStyle( FEditorStyle::Get(), "NewClassDialog.SelectedParentClassLabel" )
-											.Text( LOCTEXT( "CreateModule_PathLabel", "Path"))
-										]
-										// Path edit box
-										+SGridPanel::Slot(1, 1)
-										.VAlign(VAlign_Center)
-										[
-											SNew(SVerticalBox)
-											+SVerticalBox::Slot()
-											.Padding(0)
-											.AutoHeight()
-											[
-												SNew(SBox)
-												.HeightOverride(EditableTextHeight)
-												[
-													SNew(SHorizontalBox)
-
-													+SHorizontalBox::Slot()
-													.FillWidth(1.0f)
-													[
-														SNew(SEditableTextBox)
-														.Text(this, &SNewModuleDialog::GetOutputPath)
-														.OnTextChanged(this, &SNewModuleDialog::OnOutputPathChanged)
-													]
-												]
-											]
-										]
-										// Choose folder button
-										+SGridPanel::Slot(2, 1)
-										.Padding(0.0f, 3.0f)
-										.VAlign(VAlign_Center)
-										[
-											SNew(SBox)
-											.HeightOverride(EditableTextHeight)
-											[
-												SNew(SHorizontalBox)
-												+SHorizontalBox::Slot()
-												.FillWidth(1.f)
-												.HAlign(HAlign_Fill)
-												.Padding(6.0f, 0.0f, 0.0f, 0.0f)
-												[
-													SNew(SButton)
-													.VAlign(VAlign_Center)
-													.OnClicked(this, &SNewModuleDialog::HandleChooseFolderButtonClicked)
-													.ToolTipText(LOCTEXT("CreateModule_ChooseFolderTooltip", "You can choose either the 'Source' folder in your project's root directory or of any plugin in the 'Plugins' folder."))
-													.Text(LOCTEXT("BrowseButtonText", "Choose folder"))
-												]
-											]
-										]
-									]
-								]
-							]
-						]
-					]
+					CreateMainPage()
 				]
 			]
 		]
@@ -332,6 +76,257 @@ void SNewModuleDialog::PopulateAvailableModules()
 	}
 
 	// TODO: discover engine module
+}
+
+void SNewModuleDialog::PopulateModuleTypes()
+{
+	for (size_t i = EHostType::Runtime; i < EHostType::Max; ++i)
+	{
+		ModuleTypeOptions.Add(MakeShared<EHostType::Type>(static_cast<EHostType::Type>(i)));
+	}
+}
+
+void SNewModuleDialog::PopulateLoadingPhases()
+{
+	for (size_t i = ELoadingPhase::EarliestPossible; i < ELoadingPhase::Max; ++i)
+	{
+		LoadingPhaseOptions.Add(MakeShared<ELoadingPhase::Type>(static_cast<ELoadingPhase::Type>(i)));
+	}
+}
+
+TSharedRef<SWidget> SNewModuleDialog::CreateMainPage()
+{
+	return SNew(SVerticalBox)
+	
+		// Title
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0)
+		[
+			SNew(STextBlock)
+			.Font(FAppStyle::Get().GetFontStyle("HeadingExtraSmall"))
+			.TransformPolicy(ETextTransformPolicy::ToUpper)
+			.Text( LOCTEXT( "NewModule_Title", "New C++ Module" ) )
+		]
+
+		// Page description and view options
+		+SVerticalBox::Slot()
+		.AutoHeight()
+		.Padding(0, 10)
+		[
+			SNew(SHorizontalBox)
+
+			+SHorizontalBox::Slot()
+			.FillWidth(1.f)
+			.VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text(
+					LOCTEXT("NewModule_PageDescription", "This will add a new C++ module to your game project and update the .uproject or .uplugin file, respectively.")
+					)
+			]
+		]
+
+		// First page: name module, module type, and loading phase
+		+SVerticalBox::Slot()
+		.Padding(2, 2)
+		.AutoHeight()
+		.HAlign(EHorizontalAlignment::HAlign_Fill)//
+		[
+			SNew(SHorizontalBox)
+			+SHorizontalBox::Slot()
+			.HAlign(EHorizontalAlignment::HAlign_Fill)//
+			.FillWidth(1.f)//
+			[
+				SNew(SVerticalBox)
+
+				+SVerticalBox::Slot()
+				.AutoHeight()
+				.VAlign(VAlign_Center)
+				[
+					// Gray details panel
+					SNew(SBorder)
+					.BorderImage(FEditorStyle::GetBrush("DetailsView.CategoryTop"))
+					.BorderBackgroundColor(FLinearColor(0.6f, 0.6f, 0.6f, 1.0f ))
+					.Padding(FMargin(6.0f, 4.0f, 7.0f, 4.0f))
+					[
+						SNew(SVerticalBox)
+
+						+SVerticalBox::Slot()
+						.AutoHeight()
+						.Padding(0)
+						[
+							CreateModuleDetailsPanel()
+						]
+					]
+				]
+			]
+		];
+}
+
+TSharedRef<SWidget> SNewModuleDialog::CreateModuleDetailsPanel()
+{
+	constexpr float EditableTextHeight = 26.f;
+	const TSharedPtr<EHostType::Type> InitiallySelectedHostType = *ModuleTypeOptions.FindByPredicate([](auto Item) { return *Item.Get() == EHostType::Runtime; });
+	const TSharedPtr<ELoadingPhase::Type> InitiallySelectedLoadingPhase = *LoadingPhaseOptions.FindByPredicate([](auto Item) { return *Item.Get() == ELoadingPhase::Default; });
+	
+	return SNew(SGridPanel)
+		.FillColumn(1, 1.0f)
+
+		// Name label
+		+SGridPanel::Slot(0, 0)
+		.VAlign(VAlign_Center)
+		.Padding(0, 0, 12, 0)
+		[
+			SNew(STextBlock)
+			.Text( LOCTEXT( "CreateModule_NameLabel", "Name" ) )
+		]
+
+		// Name edit box
+		+SGridPanel::Slot(1, 0)
+		.Padding(0.0f, 3.0f)
+		.VAlign(VAlign_Center)
+		[
+			SNew(SBox)
+			.HeightOverride(EditableTextHeight)
+			[
+				SAssignNew(ModuleNameEditBox, SEditableTextBox)
+				.Text(this, &SNewModuleDialog::OnGetModuleName)
+				.OnTextChanged(this, &SNewModuleDialog::OnModuleNameChanged)
+				.OnTextCommitted(this, &SNewModuleDialog::OnModuleNameCommitted)
+			]
+		]
+		// Host type and loading phase
+		+SGridPanel::Slot(2, 0)
+		.Padding(0.0f, 3.0f)
+		.VAlign(VAlign_Center)
+		[
+			SNew(SBox)
+			.HeightOverride(EditableTextHeight)
+			[
+				SNew(SHorizontalBox)
+				// Host type
+				+ SHorizontalBox::Slot()
+				.AutoWidth()
+				.Padding(6.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SAssignNew(SelectableHostTypesComboBox, SComboBox<TSharedPtr<EHostType::Type>>)
+					.Visibility(EVisibility::Visible)
+					.ToolTipText(LOCTEXT("CreateModule_ModuleHostTypeTip", "Choose your module's loading context"))
+					.OptionsSource(&ModuleTypeOptions)
+					.InitiallySelectedItem(InitiallySelectedHostType)
+					.OnSelectionChanged(this, &SNewModuleDialog::OnSelectedHostTypeChanged)
+					.OnGenerateWidget(this, &SNewModuleDialog::MakeWidgetForSelectedHostType)
+					[
+						SNew(STextBlock)
+						.Text(this, &SNewModuleDialog::GetSelectedHostTypeText)
+					]
+				]
+
+				// Loading phase
+				+ SHorizontalBox::Slot()
+					.AutoWidth()
+					.Padding(6.0f, 0.0f, 0.0f, 0.0f)
+					[
+						SAssignNew(SelectableLoadingPhasesComboBox, SComboBox<TSharedPtr<ELoadingPhase::Type>>)
+						.Visibility(EVisibility::Visible)
+					.ToolTipText(LOCTEXT("CreateModule_ModuleLoadingPhaseTip", "Choose your module's loading phase"))
+					.OptionsSource(&LoadingPhaseOptions)
+					.InitiallySelectedItem(InitiallySelectedLoadingPhase)
+					.OnSelectionChanged(this, &SNewModuleDialog::OnSelectedLoadingPhaseChanged)
+					.OnGenerateWidget(this, &SNewModuleDialog::MakeWidgetForSelectedLoadingPhase)
+					[
+						SNew(STextBlock)
+						.Text(this, &SNewModuleDialog::GetSelectedLoadingPhaseText)
+					]
+				]
+			]
+		]
+
+		// Path label
+		+SGridPanel::Slot(0, 1)
+		.VAlign(VAlign_Center)
+		.Padding(0, 0, 12, 0)
+		[
+			SNew(STextBlock)
+			.Text( LOCTEXT( "CreateModule_PathLabel", "Path"))
+		]
+		// Path edit box
+		+SGridPanel::Slot(1, 1)
+		.VAlign(VAlign_Center)
+		[
+			SNew(SVerticalBox)
+			+SVerticalBox::Slot()
+			.Padding(0)
+			.AutoHeight()
+			[
+				SNew(SBox)
+				.HeightOverride(EditableTextHeight)
+				[
+					SNew(SHorizontalBox)
+
+					+SHorizontalBox::Slot()
+					.FillWidth(1.0f)
+					[
+						SNew(SEditableTextBox)
+						.Text(this, &SNewModuleDialog::GetOutputPath)
+						.OnTextChanged(this, &SNewModuleDialog::OnOutputPathChanged)
+					]
+				]
+			]
+		]
+		
+		// Choose folder button
+		+SGridPanel::Slot(2, 1)
+		.Padding(0.0f, 3.0f)
+		.VAlign(VAlign_Center)
+		[
+			SNew(SBox)
+			.HeightOverride(EditableTextHeight)
+			[
+				SNew(SHorizontalBox)
+				+SHorizontalBox::Slot()
+				.FillWidth(1.f)
+				.HAlign(HAlign_Fill)
+				.Padding(6.0f, 0.0f, 0.0f, 0.0f)
+				[
+					SNew(SButton)
+					.VAlign(VAlign_Center)
+					.OnClicked(this, &SNewModuleDialog::HandleChooseFolderButtonClicked)
+					.ToolTipText(LOCTEXT("CreateModule_ChooseFolderTooltip", "You can choose either the 'Source' folder in your project's root directory or of any plugin in the 'Plugins' folder."))
+					.Text(LOCTEXT("BrowseButtonText", "Choose folder"))
+				]
+			]
+		];
+}
+
+TSharedRef<SWidget> SNewModuleDialog::CreateFooter()
+{
+	return SNew(SBorder)
+		.Visibility( this, &SNewModuleDialog::GetErrorLabelVisibility )
+		.BorderImage( FEditorStyle::GetBrush("NewClassDialog.ErrorLabelBorder") )
+		.Padding(FMargin(0, 5))
+		.Content()
+		[
+			SNew(SHorizontalBox)
+
+			+SHorizontalBox::Slot()
+			.VAlign(VAlign_Center)
+			.Padding(2.f)
+			.AutoWidth()
+			[
+				SNew(SImage)
+				.Image(FEditorStyle::GetBrush("MessageLog.Warning"))
+			]
+
+			+SHorizontalBox::Slot()
+			.VAlign(VAlign_Center)
+			[
+				SNew(STextBlock)
+				.Text( this, &SNewModuleDialog::GetErrorLabelText )
+				.TextStyle( FEditorStyle::Get(), "NewClassDialog.ErrorLabelFont" )
+			]
+		];
 }
 
 FString SNewModuleDialog::FindSuitableModulePath() const

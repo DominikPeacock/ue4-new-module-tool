@@ -16,8 +16,8 @@
 #include "Serialization/JsonSerializer.h"
 #include "Widgets/DeclarativeSyntaxSupport.h"
 #include "Widgets/SWindow.h"
-#include "Dialogs/SOutputLogDialog.h"
 #include "GameProjectGenerationModule.h"
+#include "Interfaces/IMainFrameModule.h"
 
 #define LOCTEXT_NAMESPACE "FModuleGenerationModule"
 
@@ -26,19 +26,29 @@ void NewModuleController::CreateAndShowNewModuleWindow()
 	const FVector2D WindowSize(940, 380); // 480
 	const FText WindowTitle = LOCTEXT("NewModule_Title", "New C++ Module");
 
-	TSharedRef<SWindow> AddCodeWindow =
+	const TSharedRef<SWindow> AddCodeWindow =
 		SNew(SWindow)
 		.Title(WindowTitle)
 		.ClientSize(WindowSize)
 		.SizingRule(ESizingRule::FixedSize)
-		.SupportsMinimize(false).SupportsMaximize(false);
+		.SupportsMinimize(false)
+		.SupportsMaximize(false);
 
-	auto NewModuleDialog =
+	const TSharedRef<SNewModuleDialog> NewModuleDialog =
 		SNew(SNewModuleDialog)
 		.ParentWindow(AddCodeWindow)
-		.OnClickFinished(FOnRequestNewModule::CreateLambda([](auto Directory, auto ModuleDescriptor, auto ErrorCallback) { NewModuleModel::CreateNewModule(Directory, ModuleDescriptor, ErrorCallback); }));
+		.OnClickFinished(FOnRequestNewModule::CreateLambda([](const FString& Directory, const FModuleDescriptor& ModuleDescriptor, const FOnCreateNewModuleError& ErrorCallback) { NewModuleModel::CreateNewModule(Directory, ModuleDescriptor, ErrorCallback); }));
 	AddCodeWindow->SetContent(NewModuleDialog);
-	FSlateApplication::Get().AddWindow(AddCodeWindow);
+
+	const IMainFrameModule& MainFrameModule = FModuleManager::LoadModuleChecked<IMainFrameModule>("MainFrame");
+	if (const TSharedPtr<SWindow> ParentWindow = MainFrameModule.GetParentWindow())
+	{
+		FSlateApplication::Get().AddWindowAsNativeChild(AddCodeWindow, ParentWindow.ToSharedRef());
+	}
+	else
+	{
+		FSlateApplication::Get().AddWindow(AddCodeWindow);
+	}
 }
 
 // Declare helper functions for NewModuleModel::CreateNewModule 

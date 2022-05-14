@@ -8,19 +8,19 @@ public class ModuleGeneration : ModuleRules
 	{
 		PCHUsage = ModuleRules.PCHUsageMode.UseExplicitOrSharedPCHs;
 
-		PrivateIncludePaths.AddRange(
-			new string[]
-			{
-				"ModuleGeneration/Private"
-			}
-		);
+        PrivateIncludePaths.AddRange(
+            new string[]
+            {
+                "ModuleGeneration/Private"
+            }
+        );
 
 		PublicDependencyModuleNames.AddRange(
 			new string[]
 			{
-				"Core",
+                "Core",
 				"EditorStyle",
-				"Slate"
+                "Slate"
 			}
 			);
 		PrivateDependencyModuleNames.AddRange(
@@ -28,18 +28,19 @@ public class ModuleGeneration : ModuleRules
 			{
 				"AppFramework",
 				"Core",
-				"CoreUObject",
+                "CoreUObject",
 				"DesktopPlatform",
-				"Engine",
+                "Engine",
 				"EngineSettings",
 				"GameProjectGeneration",
-				"InputCore",
+                "InputCore",
 				"Json",
-				"Projects",
+				"MainFrame",
+                "Projects",
 				"UnrealEd",
-				"Slate",
-				"SlateCore",
-				"ToolMenus"
+                "Slate",
+                "SlateCore",
+                "ToolMenus"
 			}
 			);
 	}
