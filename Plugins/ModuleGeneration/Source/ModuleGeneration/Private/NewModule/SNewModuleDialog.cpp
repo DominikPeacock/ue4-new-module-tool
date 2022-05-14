@@ -420,19 +420,20 @@ void SNewModuleDialog::OnClickCancel()
 
 void SNewModuleDialog::OnClickFinish()
 {
-	OnClickFinished.ExecuteIfBound(
+	const UE::ModuleGeneration::FOperationResult OperationResult = OnClickFinished.Execute(
 		OutputDirectory, 
-		FModuleDescriptor(FName(*NewModuleName), SelectedHostType, SelectedLoadingPhase),
-		FOnCreateNewModuleError::CreateLambda([](auto Error)
-		{
-			const FText ErrorMessageUnformatted =
+		FModuleDescriptor(FName(*NewModuleName), SelectedHostType, SelectedLoadingPhase)
+	);
+
+	if (!OperationResult)
+	{
+		const FText ErrorMessageUnformatted =
 				LOCTEXT("NewModule_Error_Message", "Failed to create new module.\n\n\nReason: {0}\n\nSome files may already have been created.");
-			const FText ErrorMessage = FText::Format(FTextFormat(ErrorMessageUnformatted), FText::FromString(Error));
-			const FText ErrorTitle = 
-				LOCTEXT("NewModule_Error_Title", "Error creating new C++ Module");
-			FMessageDialog::Open(EAppMsgType::Ok, ErrorMessage, &ErrorTitle);
-		}
-	));
+		const FText ErrorMessage = FText::Format(FTextFormat(ErrorMessageUnformatted), FText::FromString(OperationResult.ErrorMessage.GetValue()));
+		const FText ErrorTitle = 
+			LOCTEXT("NewModule_Error_Title", "Error creating new C++ Module");
+		FMessageDialog::Open(EAppMsgType::Ok, ErrorMessage, &ErrorTitle);
+	}
 	
 	CloseContainingWindow();
 }

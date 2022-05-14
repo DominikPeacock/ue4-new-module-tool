@@ -20,7 +20,8 @@ public class ModuleGeneration : ModuleRules
 			{
                 "Core",
 				"EditorStyle",
-                "Slate"
+                "Slate", 
+                "Projects"
 			}
 			);
 		PrivateDependencyModuleNames.AddRange(

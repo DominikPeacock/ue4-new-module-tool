@@ -14,6 +14,8 @@ class SWizard;
 class SNewModuleDialog : public SCompoundWidget
 {
 public:
+
+	DECLARE_DELEGATE_RetVal_TwoParams(UE::ModuleGeneration::FOperationResult, FOnRequestNewModule, const FString& /*OutputDirectory*/, const FModuleDescriptor& /*ClassPath*/)
 	
 	SLATE_BEGIN_ARGS(SNewModuleDialog)
 	{}
