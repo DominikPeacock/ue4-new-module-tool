@@ -2,10 +2,10 @@
 
 #include "ModuleGeneration.h"
 
-#include "Logging.h"
 #include "ModuleGenerationCommands.h"
 #include "NewModule/NewModuleLogic.h"
 
+#include "Framework/Commands/UICommandList.h"
 #include "Modules/ModuleManager.h"
 #include "ToolMenus.h"
 
@@ -24,18 +24,15 @@ void FModuleGenerationModule::StartupModule()
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateLambda(
 		[this]()
 		{
-			UToolMenu* FileMenu = UToolMenus::Get()->ExtendMenu("LevelEditor.MainMenu.File");
-			FToolMenuSection& Section = FileMenu->FindOrAddSection("FileProject");
+			UToolMenu* FileMenu = UToolMenus::Get()->ExtendMenu("MainFrame.MainMenu.Tools");
+			FToolMenuSection& Section = FileMenu->FindOrAddSection("Programming");
 			Section.AddMenuEntryWithCommandList(FModuleGenerationCommands::Get().NewModule, PluginCommands);
 		}
 	));
 }
 
 void FModuleGenerationModule::ShutdownModule()
-{
-	// This function may be called during shutdown to clean up your module.  For modules that support dynamic reloading,
-	// we call this function before unloading the module.
-}
+{}
 
 #undef LOCTEXT_NAMESPACE
 	

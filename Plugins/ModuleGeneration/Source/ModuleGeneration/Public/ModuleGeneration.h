@@ -5,16 +5,17 @@
 #include "CoreMinimal.h"
 #include "Modules/ModuleManager.h"
 
+class FUICommandList;
+
 class FModuleGenerationModule : public IModuleInterface
 {
 public:
 
 	/** IModuleInterface implementation */
-	void StartupModule() override;
-	void ShutdownModule() override;
+	virtual void StartupModule() override;
+	virtual void ShutdownModule() override;
 
 private:
 	
-	TSharedPtr<class FUICommandList> PluginCommands;
-	
+	TSharedPtr<FUICommandList> PluginCommands;
 };
