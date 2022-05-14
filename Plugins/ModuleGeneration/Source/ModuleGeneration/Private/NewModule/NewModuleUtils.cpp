@@ -1,6 +1,6 @@
 // Copyright Dominik Peacock. All rights reserved.
 
-#include "NewModule/NewModuleLogic.h"
+#include "NewModule/NewModuleUtils.h"
 #include "NewModule/SNewModuleDialog.h"
 #include "Logging.h"
 
@@ -21,7 +21,7 @@
 
 #define LOCTEXT_NAMESPACE "FModuleGenerationModule"
 
-void NewModuleController::CreateAndShowNewModuleWindow()
+TSharedRef<SWindow> UE::ModuleGeneration::CreateAndShowNewModuleWindow()
 {
 	const FVector2D WindowSize(940, 380); // 480
 	const FText WindowTitle = LOCTEXT("NewModule_Title", "New C++ Module");
@@ -37,7 +37,10 @@ void NewModuleController::CreateAndShowNewModuleWindow()
 	const TSharedRef<SNewModuleDialog> NewModuleDialog =
 		SNew(SNewModuleDialog)
 		.ParentWindow(AddCodeWindow)
-		.OnClickFinished(FOnRequestNewModule::CreateLambda([](const FString& Directory, const FModuleDescriptor& ModuleDescriptor, const FOnCreateNewModuleError& ErrorCallback) { NewModuleModel::CreateNewModule(Directory, ModuleDescriptor, ErrorCallback); }));
+		.OnClickFinished(FOnRequestNewModule::CreateLambda([](const FString& Directory, const FModuleDescriptor& ModuleDescriptor, const FOnCreateNewModuleError& ErrorCallback)
+		{
+			CreateNewModule(Directory, ModuleDescriptor, ErrorCallback);
+		}));
 	AddCodeWindow->SetContent(NewModuleDialog);
 
 	const IMainFrameModule& MainFrameModule = FModuleManager::LoadModuleChecked<IMainFrameModule>("MainFrame");
@@ -49,6 +52,8 @@ void NewModuleController::CreateAndShowNewModuleWindow()
 	{
 		FSlateApplication::Get().AddWindow(AddCodeWindow);
 	}
+
+	return AddCodeWindow;
 }
 
 // Declare helper functions for NewModuleModel::CreateNewModule 
@@ -113,7 +118,7 @@ namespace
 	bool GenerateVisualStudioSolution(const FErrorHandler& ErrorHandler);
 }
 
-void NewModuleModel::CreateNewModule(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FOnCreateNewModuleError& ErrorCallback)
+void UE::ModuleGeneration::CreateNewModule(const FString& OutputDirectory, const FModuleDescriptor& NewModule, const FOnCreateNewModuleError& ErrorCallback)
 {
 	const EModuleCreationLocation::Type CreationLocation =
 		CreateNewModuleInternal(OutputDirectory, NewModule, ErrorCallback);

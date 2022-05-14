@@ -3,7 +3,7 @@
 #include "ModuleGeneration.h"
 
 #include "ModuleGenerationCommands.h"
-#include "NewModule/NewModuleLogic.h"
+#include "NewModule/NewModuleUtils.h"
 
 #include "Framework/Commands/UICommandList.h"
 #include "Modules/ModuleManager.h"
@@ -18,7 +18,7 @@ void FModuleGenerationModule::StartupModule()
 	PluginCommands = MakeShareable(new FUICommandList);
 	PluginCommands->MapAction(
 		FModuleGenerationCommands::Get().NewModule,
-		FExecuteAction::CreateStatic(&NewModuleController::CreateAndShowNewModuleWindow),
+		FExecuteAction::CreateLambda([](){ UE::ModuleGeneration::CreateAndShowNewModuleWindow(); }),
 		FCanExecuteAction());
 	
 	UToolMenus::RegisterStartupCallback(FSimpleMulticastDelegate::FDelegate::CreateLambda(

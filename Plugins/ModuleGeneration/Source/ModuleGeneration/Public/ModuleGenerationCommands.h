@@ -14,10 +14,7 @@ public:
         : TCommands<FModuleGenerationCommands>(TEXT("ModuleGeneration"), NSLOCTEXT("Contexts", "ModuleGenerationCommands", "Module Generation Commands"), NAME_None, FEditorStyle::GetStyleSetName())
     {}
     void RegisterCommands() override;
-    
-public:
 
     TSharedPtr<FUICommandInfo> NewModule;
-    
 };
 

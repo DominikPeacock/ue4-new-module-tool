@@ -6,12 +6,9 @@
 
 struct FModuleDescriptor;
 
-namespace NewModuleController
+namespace UE::ModuleGeneration
 {
-	void CreateAndShowNewModuleWindow();
-}
-
-namespace NewModuleModel
-{
+	TSharedRef<SWindow> CreateAndShowNewModuleWindow();
+	
 	void CreateNewModule(const FString& OutputDirectory, const FModuleDescriptor& NewModuleName, const FOnCreateNewModuleError& ErrorHandler);
 }
