@@ -9,6 +9,7 @@
 #include "Widgets/Layout/SGridPanel.h"
 #include "Widgets/Layout/SSeparator.h"
 #include "Widgets/Workflow/SWizard.h"
+#include "Styling/AppStyle.h"
 
 #define LOCTEXT_NAMESPACE "FModuleGenerationModule"
 
@@ -27,7 +28,7 @@ void SNewModuleDialog::Construct(const FArguments& InArgs)
 	[
 		SNew(SBorder)
 		.Padding(18)
-		.BorderImage( FEditorStyle::GetBrush("Docking.Tab.ContentAreaBrush") )
+		.BorderImage(FAppStyle::GetBrush("Docking.Tab.ContentAreaBrush") )
 		[
 			SNew(SVerticalBox)
 
@@ -146,7 +147,7 @@ TSharedRef<SWidget> SNewModuleDialog::CreateMainPage()
 				[
 					// Gray details panel
 					SNew(SBorder)
-					.BorderImage(FEditorStyle::GetBrush("DetailsView.CategoryTop"))
+					.BorderImage(FAppStyle::GetBrush("DetailsView.CategoryTop"))
 					.BorderBackgroundColor(FLinearColor(0.6f, 0.6f, 0.6f, 1.0f ))
 					.Padding(FMargin(6.0f, 4.0f, 7.0f, 4.0f))
 					[

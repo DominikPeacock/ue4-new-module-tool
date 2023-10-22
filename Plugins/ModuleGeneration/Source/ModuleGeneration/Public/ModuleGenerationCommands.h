@@ -4,14 +4,14 @@
 
 #include "CoreMinimal.h"
 #include "Framework/Commands/Commands.h"
-#include "EditorStyleSet.h"
+#include "Styling/AppStyle.h"
 
 class FModuleGenerationCommands : public TCommands<FModuleGenerationCommands>
 {
 public:
 
     FModuleGenerationCommands()
-        : TCommands<FModuleGenerationCommands>(TEXT("ModuleGeneration"), NSLOCTEXT("Contexts", "ModuleGenerationCommands", "Module Generation Commands"), NAME_None, FEditorStyle::GetStyleSetName())
+        : TCommands<FModuleGenerationCommands>(TEXT("ModuleGeneration"), NSLOCTEXT("Contexts", "ModuleGenerationCommands", "Module Generation Commands"), NAME_None, FAppStyle::GetAppStyleSetName())
     {}
     void RegisterCommands() override;
 
