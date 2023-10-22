@@ -96,7 +96,7 @@ namespace UE::ModuleGeneration
 			const FText DoneMessageUnformatted = LOCTEXT("NewModule_Done_ModuleMessage", "Sucessfully created new module.\n\nYou need to update your project's .Target.cs files by adding:\nExtraModuleNames.Add(\"{0}\")");
 			const FText DoneMessage = FText::Format(FTextFormat(DoneMessageUnformatted), FText::FromString(NewModule.Name.ToString()));
 			const FText DoneTitle = LOCTEXT("NewModule_Done_Title", "New C++ Module");
-			FMessageDialog::Open(EAppMsgType::Ok, DoneMessage, &DoneTitle);
+			FMessageDialog::Open(EAppMsgType::Ok, DoneMessage, DoneTitle);
 			return FOperationResult::MakeSuccess();
 		}
 		if (CreationLocation.OperationResult.GetValue() == EModuleCreationLocation::Plugin)
@@ -104,7 +104,7 @@ namespace UE::ModuleGeneration
 			const FText DoneMessageUnformatted = LOCTEXT("NewModule_Done_PluginMessage", "Sucessfully created new module.");
 			const FText DoneMessage = FText::Format(FTextFormat(DoneMessageUnformatted), FText::FromString(NewModule.Name.ToString()));
 			const FText DoneTitle = LOCTEXT("NewModule_Done_Title", "New C++ Module");
-			FMessageDialog::Open(EAppMsgType::Ok, DoneMessage, &DoneTitle);
+			FMessageDialog::Open(EAppMsgType::Ok, DoneMessage, DoneTitle);
 			return FOperationResult::MakeSuccess();
 		}
 

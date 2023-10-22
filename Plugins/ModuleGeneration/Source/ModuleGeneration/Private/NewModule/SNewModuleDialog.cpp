@@ -432,7 +432,7 @@ void SNewModuleDialog::OnClickFinish()
 		const FText ErrorMessage = FText::Format(FTextFormat(ErrorMessageUnformatted), FText::FromString(OperationResult.ErrorMessage.GetValue()));
 		const FText ErrorTitle = 
 			LOCTEXT("NewModule_Error_Title", "Error creating new C++ Module");
-		FMessageDialog::Open(EAppMsgType::Ok, ErrorMessage, &ErrorTitle);
+		FMessageDialog::Open(EAppMsgType::Ok, ErrorMessage, ErrorTitle);
 	}
 	
 	CloseContainingWindow();
