@@ -8,11 +8,6 @@
 			"Name": "Plugin",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "NewModule2",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
 		}
 	]
 }

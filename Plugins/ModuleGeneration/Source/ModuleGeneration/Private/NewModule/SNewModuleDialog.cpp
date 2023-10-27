@@ -1,13 +1,11 @@
 // Copyright Dominik Peacock. All rights reserved.
 
 #include "NewModule/SNewModuleDialog.h"
-#include "Logging.h"
 
 #include "DesktopPlatformModule.h"
-#include "GameProjectGeneration/Public/GameProjectUtils.h"
+#include "GameProjectUtils.h"
 #include "IDesktopPlatform.h"
 #include "Widgets/Layout/SGridPanel.h"
-#include "Widgets/Layout/SSeparator.h"
 #include "Widgets/Workflow/SWizard.h"
 #include "Styling/AppStyle.h"
 
