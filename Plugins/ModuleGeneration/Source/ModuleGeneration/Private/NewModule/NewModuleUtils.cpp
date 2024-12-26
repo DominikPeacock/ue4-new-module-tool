@@ -228,7 +228,7 @@ namespace UE::ModuleGeneration
 			return FOperationResult::MakeFailure(FString::Printf(TEXT("Failed to parse JSON from config file '%s'"), *FullFilePath));
 		}
 
-		TArray<TSharedPtr<FJsonValue>> Modules = ProjectFileAsJson->GetArrayField("Modules");
+		TArray<TSharedPtr<FJsonValue>> Modules = ProjectFileAsJson->GetArrayField(TEXT("Modules"));
 		const bool bModuleAlreadyInList = [&Modules, &NewModule]()
 		{
 			for (auto e : Modules)
@@ -242,7 +242,7 @@ namespace UE::ModuleGeneration
 
 				TSharedPtr<FJsonObject> AsJsonObject = *PtrToJsonObject;
 				FString ModuleName;
-				if (AsJsonObject->TryGetStringField("Name", ModuleName)
+				if (AsJsonObject->TryGetStringField(TEXT("Name"), ModuleName)
 					&& ModuleName.Equals(NewModule.Name.ToString()))
 				{
 					return true;
